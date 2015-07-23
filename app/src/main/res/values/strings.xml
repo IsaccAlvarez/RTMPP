@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">RestauranteApp</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_notas">Notas</string>
+    <string name="title_activity_modificar">ModificarActivity</string>
+    <string name="title_activity_modificadores">ModificadoresActivity</string>
+    <string name="title_activity_acompanamiento">AcompanamientoActivity</string>
+    <string name="Impuesto_Venta">Impuesto Venta:</string>
+    <string name="Subtotal">Sub Total:</string>
+    <string name="ImpuestoServicio">Impuesto Servicio:</string>
+    <string name="Guardar">Guardar</string>
+    <string name="Total_">Total:</string>
+
+</resources>

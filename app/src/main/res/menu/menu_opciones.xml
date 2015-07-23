@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/mNota"
+        android:title="Nota"/>
+
+    <item
+        android:id="@+id/mQuitar"
+        android:title="Quitar"/>
+
+    <!--<item-->
+        <!--android:id="@+id/mModificar"-->
+        <!--android:title="Modificar"/>-->
+
+</menu>
