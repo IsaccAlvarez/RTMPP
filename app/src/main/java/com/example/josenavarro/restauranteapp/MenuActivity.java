@@ -500,8 +500,6 @@ public class MenuActivity extends ActionBarActivity {
             final TextView impuesto = (TextView) findViewById(R.id.txImpuesto);
             final TextView impuestoserv = (TextView) findViewById(R.id.txImpuestoServ);
             double precio;
-
-
             for (int i = 0; i < ListaPrecioEnTabla.size(); i++) {
                 int s = ListaPrecioEnTabla.size();
                 String precioCambio = ListaPrecioEnTabla.get(i).toString();
@@ -510,7 +508,7 @@ public class MenuActivity extends ActionBarActivity {
                 if (ListaIVEnTabla.get(i).equals("true") && ListaISEnTabla.get(i).equals("false")) {
                     subT = subT + precio;
                     impIV = subT * (0.13);
-                    impIS = 0.0;
+                    impIS = impIS + 0.0;
                     Total = subT + impIS + impIV;
                     sub = clsGlobal.fnFormat(subT);
                     impS = clsGlobal.fnFormat(impIS);
@@ -519,7 +517,7 @@ public class MenuActivity extends ActionBarActivity {
 
                 } else if (ListaIVEnTabla.get(i).equals("false") && ListaISEnTabla.get(i).equals("true")) {
                     subT = subT + precio;
-                    impIV = 0.0;
+                    impIV = impIV + 0.0;
                     impIS = subT * (0.10);
                     Total = subT + impIS + impIV;
                     sub = clsGlobal.fnFormat(subT);
@@ -537,8 +535,8 @@ public class MenuActivity extends ActionBarActivity {
                     tot = clsGlobal.fnFormat(Total);
                 } else {
                     subT = subT + precio;
-                    impIV = 0.0;
-                    impIS = 0.0;
+                    impIV = impIV + 0.0;
+                    impIS = impIS + 0.0;
                     Total = subT + impIS + impIV;
                     sub = clsGlobal.fnFormat(subT);
                     impS = clsGlobal.fnFormat(impIS);
