@@ -2,10 +2,8 @@ package com.example.josenavarro.restauranteapp;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.ActionBarActivity;
@@ -33,10 +31,6 @@ import java.io.IOException;
 
 public class LoginActivity extends ActionBarActivity {
     clsGlobal glo = new clsGlobal();
-    String IdUsuario;
-    String NombreUsuario;
-    int posicionUsuario;
-    String pasa = "";
     ProgressDialog progressDialog;
     int progreso = 0;
     private Handler puente = new Handler() {
@@ -56,10 +50,18 @@ public class LoginActivity extends ActionBarActivity {
         setContentView(R.layout.activity_login);
 
         System.setProperty("http.keepAlive", "false");
+        clsGlobal.ObtenerConfiguracion(this);
         if (!VerificaConexion.verificaConexion(this)) {
             Toast.makeText(getBaseContext(),
                     "Comprueba tu conexión de wifi. Saliendo ... ", Toast.LENGTH_SHORT)
                     .show();
+            this.finish();
+            return;
+        }
+        Log.d("Login","Verificando Acceso BD");
+        if (!VerificaConexion.verificaAccesoBD()){
+            Intent comandaForm = new Intent(LoginActivity.this, ConexionActivity.class);
+            startActivity(comandaForm);
             this.finish();
             return;
         }
@@ -70,28 +72,13 @@ public class LoginActivity extends ActionBarActivity {
         progressDialog.setProgress(0);
         progressDialog.setCancelable(false);
         progressDialog.show();
-        ObtenerConfiguracion();
+
         CargarUsuarioId();
         CargarCategorias();
         CargarMenu();
         CargarModificadores();
         CargarAcompanamientos();
         CargarTodosModificadores();
-    }
-
-    public void ObtenerConfiguracion() {
-        SharedPreferences preferencia = getSharedPreferences("Confi", Context.MODE_PRIVATE);
-        posicionUsuario = preferencia.getInt("Posicion", 0);
-
-    }
-
-    public void GuardarConfiguracion() {
-        SharedPreferences preferencia = getSharedPreferences("Confi", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = preferencia.edit();
-        editor.putString("Usuario", NombreUsuario);
-        editor.putInt("Posicion", posicionUsuario);
-        clsGlobal.cedulaUsuario = IdUsuario;
-        editor.commit();
     }
 
     @Override
@@ -151,7 +138,7 @@ public class LoginActivity extends ActionBarActivity {
                 String SOAP_ACTION = new clsGlobal().SOAP_ACTION + "/fnLogin";
 
                 SoapObject sp = new SoapObject(NAMESPACE, METHOD_NAME);
-                sp.addProperty("_IdUsuario", IdUsuario);
+                sp.addProperty("_IdUsuario", clsGlobal.IdUsuarioLog);
                 sp.addProperty("_Clave", contra);
 
                 SoapSerializationEnvelope sobre = new SoapSerializationEnvelope(SoapEnvelope.VER11);
@@ -179,10 +166,9 @@ public class LoginActivity extends ActionBarActivity {
                     public void run() {
                         if (res != null) {
                             if (res.equals("Bienvenido!")) {
-                                GuardarConfiguracion();
+                                clsGlobal.GuardarConfiguracion(LoginActivity.this);
                                 Intent comandaForm = new Intent(LoginActivity.this, ComandaActivity.class);
                                 startActivity(comandaForm);
-
                             }
                             Toast.makeText(LoginActivity.this, res, Toast.LENGTH_LONG).show();
 
@@ -222,7 +208,7 @@ public class LoginActivity extends ActionBarActivity {
 
                 HttpTransportSE transporte = new HttpTransportSE(URL, glo.Time_out);
                 try {
-                    Log.d("Login", "URL:" + URL + ", Metodo:" + METHOD_NAME);
+
                     transporte.call(SOAP_ACTION, envelope);
                     Message msg = new Message();
                     msg.obj = 10;
@@ -256,13 +242,13 @@ public class LoginActivity extends ActionBarActivity {
                             ArrayAdapter<String> adapter = new ArrayAdapter<String>(cbUser.getContext(), android.R.layout.simple_spinner_item, ListaUsuarios);
                             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                             cbUser.setAdapter(adapter);
-                            cbUser.setSelection(posicionUsuario);
+                            cbUser.setSelection(clsGlobal.posUltimoUsuarioLog);
                             cbUser.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                                 @Override
                                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                    posicionUsuario = cbUser.getSelectedItemPosition();
-                                    IdUsuario = ListaId[posicionUsuario].toString();
-                                    NombreUsuario = ListaUsuarios[posicionUsuario].toString();
+                                    clsGlobal.posUltimoUsuarioLog = cbUser.getSelectedItemPosition();
+                                    clsGlobal.IdUsuarioLog = ListaId[clsGlobal.posUltimoUsuarioLog].toString();
+                                    clsGlobal.NombreUsuarioLog = ListaUsuarios[clsGlobal.posUltimoUsuarioLog].toString();
                                 }
 
                                 @Override

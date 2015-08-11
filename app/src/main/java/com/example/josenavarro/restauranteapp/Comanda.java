@@ -32,6 +32,8 @@ public class Comanda {
     public String impresora;
     public String id = "0";
     public String estado = "Activo";
+    public static String solicitud = "0";
+
 
     public Comanda(String _producto, String _codigoComanda,
                    String _cantidad, String _descripcion,
@@ -53,6 +55,7 @@ public class Comanda {
 
 
     public void spQuitar() {
+
         Thread hilo = new Thread() {
 
             String res = "0";
@@ -87,22 +90,22 @@ public class Comanda {
             }
         };
         hilo.start();
+        while (clsGlobal.currentSaving) {
+        }
     }
 
     public void spGuardar() {
-        String cedula = clsGlobal.cedulaUsuario;
+        String cedula = clsGlobal.IdUsuarioLog;
         mesa = clsGlobal.currentMesa.Id;
-
+        clsGlobal.currentSaving = true;
         if (id == "0" & estado.equals("Activo")) {
             spProcesarLinea(producto, descripcion, descripcion, precio, codigoComanda, clsGlobal.currentMesa.Id, "0", impresora, tipo, cedula, cantidad);
         } else {
             if (estado == "Inactivo") {
                 spQuitar();
-
             } else {
                 clsGlobal.currentSaving = false;
             }
-
         }
 
     }
@@ -143,6 +146,7 @@ public class Comanda {
                 sp.addProperty("_tipo", _tipo);
                 sp.addProperty("_Cedula", _Cedula);
                 sp.addProperty("_cCantidad", _cCantidad);
+                sp.addProperty("_solicitud", clsGlobal.currentSolicitud);
                 SoapSerializationEnvelope sobre = new SoapSerializationEnvelope(SoapEnvelope.VER11);
                 sobre.dotNet = true;
                 sobre.setOutputSoapObject(sp);
@@ -154,13 +158,7 @@ public class Comanda {
                     SoapPrimitive resulxml = (SoapPrimitive) sobre.getResponse();
                     res = resulxml.toString();
                     Log.d("Guardar Comanda", "Respuesta Envio: " + res);
-                    if (_cCodigo.equals("0") == false) {
-                        clsGlobal.currentComanda = _cCodigo;
-                        clsGlobal.buscaCodigoComanda = false;
-                    } else {
-                        clsGlobal.buscaCodigoComanda = true;
-                    }
-                    clsGlobal.currentSaving = false;
+
 
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -174,81 +172,17 @@ public class Comanda {
                 } catch (Exception ex) {
                     id = "0";
                 }
-
+                clsGlobal.currentSaving = false;
 
             }
+
         };
         hilo.start();
+        if (clsGlobal.currentSaving) {
 
-    }
-
-    void spComandaNumero(final String _cMesa) {
-        if (clsGlobal.currentComanda.equals("0") == false) {
-            codigoComanda = clsGlobal.currentComanda;
-            clsGlobal.buscaCodigoComanda = false;
-            clsGlobal.currentSaving = false;
-
-        } else {
-            final int comanda = 0;
-            Thread hilo = new Thread() {
-
-                String res = "0";
-
-                @Override
-                public void run() {
-
-                    String NAMESPACE = new clsGlobal().NAMESPACE;
-                    String URL = new clsGlobal().URL;
-                    String METHOD_NAME = "fnComandaMesa";
-                    String SOAP_ACTION = new clsGlobal().SOAP_ACTION + "/fnComandaMesa";
-
-                    SoapObject sp = new SoapObject(NAMESPACE, METHOD_NAME);
-                    sp.addProperty("_id", _cMesa);
-
-                    SoapSerializationEnvelope sobre = new SoapSerializationEnvelope(SoapEnvelope.VER11);
-                    sobre.dotNet = true;
-                    sobre.setOutputSoapObject(sp);
-                    HttpTransportSE transporte = new HttpTransportSE(URL, clsGlobal.Time_out);
-
-                    try {
-
-                        transporte.call(SOAP_ACTION, sobre);
-                        SoapPrimitive resulxml = (SoapPrimitive) sobre.getResponse();
-                        res = resulxml.toString();
-
-                        Log.d("Comanda", "spComandaNumero:" + res);
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
-
-                    } catch (XmlPullParserException e) {
-                        e.printStackTrace();
-                    }
-                    try {
-
-                        clsGlobal.currentComanda = res;
-                        if (clsGlobal.currentComanda.equals("0") == false) {
-                            //Lo ENCONTRO y esta listo para continuar el guardado sin problemas.
-                            codigoComanda = clsGlobal.currentComanda;
-                            clsGlobal.buscaCodigoComanda = false;
-                            Log.d("Comanda", "Lo encontro:" + res);
-                        } else {//NO lo encontro y debe seguir buscando.
-
-                            clsGlobal.buscaCodigoComanda = true;
-                            Log.d("Comanda", "NO LO ENCONTRO:" + res);
-                        }
-                        clsGlobal.currentSaving = false;
-
-                        Log.d("Guardar Comanda", "Comanda Generada: " + res);
-                    } catch (Exception ex) {
-                        clsGlobal.currentComanda = "0";
-                    }
-
-
-                }
-            };
-            hilo.start();
         }
+
     }
+
 
 }

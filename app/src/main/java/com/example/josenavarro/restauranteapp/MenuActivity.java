@@ -74,7 +74,7 @@ public class MenuActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_menu);
         glo.ListaComanda = new Comandas();
-        clsGlobal.currentComanda="0";
+        clsGlobal.currentComanda = "0";
         ActionBar actionBar = getSupportActionBar();
         getSupportActionBar().setCustomView(R.layout.action_bar);
         final TextView txMesa = (TextView) actionBar.getCustomView().findViewById(R.id.titulo_mesa);
@@ -96,9 +96,9 @@ public class MenuActivity extends ActionBarActivity {
         super.onDestroy();
         int lineas = ListaProductoEnTabla.size();
         if (lineas == 0) {
-            spActualizaMensa(clsGlobal.currentMesa.Id, "0");
+            spActualizarMesa(clsGlobal.currentMesa.Id, "0");
         } else {
-            spActualizaMensa(clsGlobal.currentMesa.Id, "1");
+            spActualizarMesa(clsGlobal.currentMesa.Id, "1");
         }
     }
 
@@ -293,7 +293,7 @@ public class MenuActivity extends ActionBarActivity {
             ListaISEnTabla.add("false");
             ListaPrecioUnidad.add("0");
             ListaImpresoraEnTabla.add("COCINA");
-            Comanda com = new Comanda("0", clsGlobal.currentComanda, "0", data.getDataString(), "0", clsGlobal.currentMesa.Id, "0", "0", clsGlobal.currentImpresora, "0", "Modificador");
+            Comanda com = new Comanda("0", clsGlobal.currentComanda, "-1", data.getDataString(), "0", clsGlobal.currentMesa.Id, "0", "0", clsGlobal.currentImpresora, "0", "Modificador");
             clsGlobal.ListaComanda.spAddComanda(com);
             InsertarProducto();
         }
@@ -338,66 +338,67 @@ public class MenuActivity extends ActionBarActivity {
             currenRow.addView(txPrecio);
             currenRow.setTag(ListaIdEnTabla.get(i));
 
-            currenRow.setOnClickListener(new View.OnClickListener() {
-                                             @Override
-                                             public void onClick(final View v) {
-                                                 PopupMenu pop = new PopupMenu(getApplicationContext(), v);
+            currenRow.setOnClickListener(
+                    new View.OnClickListener() {
+                        @Override
+                        public void onClick(final View v) {
+                            PopupMenu pop = new PopupMenu(getApplicationContext(), v);
 
-                                                 pop.getMenuInflater().inflate(R.menu.menu_opciones, pop.getMenu());
-                                                 pop.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                                                                                    @Override
-                                                                                    public boolean onMenuItemClick(MenuItem item) {
-                                                                                        String id = v.getTag().toString();
-                                                                                        final int posicion = getPosicion(id);
+                            pop.getMenuInflater().inflate(R.menu.menu_opciones, pop.getMenu());
+                            pop.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                                                               @Override
+                                                               public boolean onMenuItemClick(MenuItem item) {
+                                                                   String id = v.getTag().toString();
+                                                                   final int posicion = getPosicion(id);
 
-                                                                                        switch (item.getItemId()) {
+                                                                   switch (item.getItemId()) {
 
-                                                                                            case R.id.mNota:
-                                                                                                AlertDialog.Builder notaDialog = new AlertDialog.Builder(MenuActivity.this);
-                                                                                                notaDialog.setTitle("Notas");
-                                                                                                notaDialog.setMessage("Nota:");
-                                                                                                final EditText note = new EditText(MenuActivity.this);
-                                                                                                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                                                                                                        LinearLayout.LayoutParams.MATCH_PARENT,
-                                                                                                        LinearLayout.LayoutParams.MATCH_PARENT);
-                                                                                                note.setLayoutParams(lp);
-                                                                                                notaDialog.setView(note);
-                                                                                                notaDialog.setIcon(android.R.drawable.ic_menu_agenda);
-                                                                                                //TODO: Aqui guardar nota
+                                                                       case R.id.mNota:
+                                                                           AlertDialog.Builder notaDialog = new AlertDialog.Builder(MenuActivity.this);
+                                                                           notaDialog.setTitle("Notas");
+                                                                           notaDialog.setMessage("Nota:");
+                                                                           final EditText note = new EditText(MenuActivity.this);
+                                                                           LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                                                                                   LinearLayout.LayoutParams.MATCH_PARENT,
+                                                                                   LinearLayout.LayoutParams.MATCH_PARENT);
+                                                                           note.setLayoutParams(lp);
+                                                                           notaDialog.setView(note);
+                                                                           notaDialog.setIcon(android.R.drawable.ic_menu_agenda);
+                                                                           //TODO: Aqui guardar nota
 
-                                                                                                notaDialog.setPositiveButton("Enviar", new DialogInterface.OnClickListener() {
-                                                                                                    @Override
-                                                                                                    public void onClick(DialogInterface dialog, int which) {
-                                                                                                        Comanda com = new Comanda("0",
-                                                                                                                "0",
-                                                                                                                "-1",
-                                                                                                                note.getText().toString(),
-                                                                                                                "0",
-                                                                                                                glo.currentMesa.Id,
-                                                                                                                "0",
-                                                                                                                "0",
-                                                                                                                "0",
-                                                                                                                "0", "Modificador");
-                                                                                                        ListaIdEnTabla.add(posicion + 1, note.getText().toString() + (posicion + 1));
-                                                                                                        ListaProductoEnTabla.add(posicion + 1, note.getText().toString());
-                                                                                                        ListaCantidadEnTabla.add(posicion + 1, "N");
-                                                                                                        ListaPrecioEnTabla.add(posicion + 1, "0");
-                                                                                                        ListaIVEnTabla.add(posicion + 1, "false");
-                                                                                                        ListaISEnTabla.add(posicion + 1, "false");
-                                                                                                        ListaPrecioUnidad.add(posicion + 1, "0");
-                                                                                                        ListaImpresoraEnTabla.add(posicion + 1, "COCINA");
-                                                                                                        spAddComanda(com);
-                                                                                                        InsertarProducto();
+                                                                           notaDialog.setPositiveButton("Enviar", new DialogInterface.OnClickListener() {
+                                                                               @Override
+                                                                               public void onClick(DialogInterface dialog, int which) {
+                                                                                   Comanda com = new Comanda("0",
+                                                                                           "0",
+                                                                                           "-1",
+                                                                                           note.getText().toString(),
+                                                                                           "0",
+                                                                                           glo.currentMesa.Id,
+                                                                                           "0",
+                                                                                           "0",
+                                                                                           "0",
+                                                                                           "0", "Modificador");
+                                                                                   ListaIdEnTabla.add(posicion + 1, note.getText().toString() + (posicion + 1));
+                                                                                   ListaProductoEnTabla.add(posicion + 1, note.getText().toString());
+                                                                                   ListaCantidadEnTabla.add(posicion + 1, "N");
+                                                                                   ListaPrecioEnTabla.add(posicion + 1, "0");
+                                                                                   ListaIVEnTabla.add(posicion + 1, "false");
+                                                                                   ListaISEnTabla.add(posicion + 1, "false");
+                                                                                   ListaPrecioUnidad.add(posicion + 1, "0");
+                                                                                   ListaImpresoraEnTabla.add(posicion + 1, "COCINA");
+                                                                                   spAddComanda(com);
+                                                                                   InsertarProducto();
 
-                                                                                                    }
-                                                                                                });
-                                                                                                notaDialog.show();
-                                                                                                return true;
+                                                                               }
+                                                                           });
+                                                                           notaDialog.show();
+                                                                           return true;
 
-                                                                                            case R.id.mQuitar:
+                                                                       case R.id.mQuitar:
 
-                                                                                                spQuitarElementos(posicion, tb);
-                                                                                                return true;
+                                                                           spQuitarElementos(posicion, tb);
+                                                                           return true;
 
 
 // TODO: AQUI TODO LO RELACIONADO A CAMBIAR LA CANTIDAD  DESCOMENTAR EN MENU_OPCIONES.xml
@@ -446,26 +447,25 @@ public class MenuActivity extends ActionBarActivity {
 //                                                                                                    return true;
 //                                                                                                }
 
-                                                                                        }
-                                                                                        return false;
-                                                                                    }
-                                                                                }
+                                                                   }
+                                                                   return false;
+                                                               }
+                                                           }
 
-                                                 );
-                                                 pop.show();
-                                             }
-                                         }
+                            );
+                            pop.show();
+                        }
+                    }
 
             );
             tb.addView(currenRow);
 
-            CalcularTotales();
         }
+        CalcularTotales();
 
     }
 
     public int getPosicion(String id) {
-        Log.d("MenuActivity", "getPos:" + id);
         int lineas = ListaIdEnTabla.size();
         for (int i = 0; i < lineas; i++) {
             if (ListaIdEnTabla.get(i).equals(id)) {
@@ -500,8 +500,9 @@ public class MenuActivity extends ActionBarActivity {
             final TextView impuesto = (TextView) findViewById(R.id.txImpuesto);
             final TextView impuestoserv = (TextView) findViewById(R.id.txImpuestoServ);
             double precio;
-            for (int i = 0; i < ListaPrecioEnTabla.size(); i++) {
-                int s = ListaPrecioEnTabla.size();
+            int i = 0;
+            int cant = ListaPrecioEnTabla.size();
+            for (i = 0; i < cant; i++) {
                 String precioCambio = ListaPrecioEnTabla.get(i).toString();
                 NumberFormat fmt = NumberFormat.getNumberInstance(Locale.US);
                 precio = fmt.parse(precioCambio).doubleValue();
@@ -546,7 +547,6 @@ public class MenuActivity extends ActionBarActivity {
             }
 
             if (ListaPrecioEnTabla.size() == 0) {
-                precio = 0;
                 subT = 0.0;
                 impIV = 0.0;
                 impIS = 0.0;
@@ -564,12 +564,11 @@ public class MenuActivity extends ActionBarActivity {
             impuestoserv.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
             total.setText(tot);
             total.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-
-            precio = 0;
             subT = 0;
             impIV = 0;
             impIS = 0;
             Total = 0;
+            precio = 0;
         } catch (Exception ex) {
 
         }
@@ -602,9 +601,11 @@ public class MenuActivity extends ActionBarActivity {
                     SoapObject resul2 = (SoapObject) resul.getProperty(1);
                     if (resul2.getPropertyCount() > 0) {
                         SoapObject filas = (SoapObject) resul2.getProperty(0);
-                        for (int i = 0; i < filas.getPropertyCount(); i++) {
+                        int cant = filas.getPropertyCount();
+                        int x = 0;
+                        while (x < cant) {
                             //TODO: Añadir datos de la BD en Arreglo
-                            SoapObject columnas = (SoapObject) filas.getProperty(i);
+                            SoapObject columnas = (SoapObject) filas.getProperty(x);
                             double precio = Double.parseDouble(columnas.getProperty(4).toString());
                             glo.currentComanda = columnas.getProperty(1).toString();
                             glo.ListaComanda.spAddComanda(
@@ -619,7 +620,7 @@ public class MenuActivity extends ActionBarActivity {
                                             columnas.getProperty(9).toString(),
                                             columnas.getProperty(10).toString(), "Principal"
                                     ));
-                            ListaIdEnTabla.add(columnas.getProperty(1).toString() + i);
+                            ListaIdEnTabla.add(columnas.getProperty(1).toString() + x);
                             if (columnas.getProperty(2).toString().equals("0")) {
                                 ListaCantidadEnTabla.add("M");//Es un modificador
 
@@ -636,6 +637,7 @@ public class MenuActivity extends ActionBarActivity {
                             ListaIVEnTabla.add(columnas.getProperty(7).toString());
                             ListaISEnTabla.add(columnas.getProperty(8).toString());
                             ListaImpresoraEnTabla.add(columnas.getProperty(9).toString());
+                            x++;
                         }
 
                     }
@@ -664,6 +666,7 @@ public class MenuActivity extends ActionBarActivity {
         };
 
         hilo.start();
+
     }
 
     public void btGuardarClick(View v) {
@@ -678,7 +681,7 @@ public class MenuActivity extends ActionBarActivity {
         int lineas = ListaProductoEnTabla.size();
         if (lineas == 0) {
             clsGlobal.currentMesa.Estado = "0";
-            spActualizaMensa(clsGlobal.currentMesa.Id, "0");
+            spActualizarMesa(clsGlobal.currentMesa.Id, "0");
 
         } else {
             clsGlobal.currentMesa.Estado = "1";
@@ -701,7 +704,7 @@ public class MenuActivity extends ActionBarActivity {
         }
     }
 
-    void spActualizaMensa(final String _id, final String _estado) {
+    void spActualizarMesa(final String _id, final String _estado) {
 
         Thread hilo = new Thread() {
 
@@ -741,10 +744,14 @@ public class MenuActivity extends ActionBarActivity {
     }
 
     public void spAddComanda(Comanda cmd) {
-        if (cmd.codigoComanda.equals("0")){ cmd.codigoComanda = clsGlobal.currentComanda;}
+        cmd.solicitud = glo.currentSolicitud;
+        if (cmd.codigoComanda.equals("0")) {
+            cmd.codigoComanda = glo.currentComanda;
+
+        }
+
         clsGlobal.ListaComanda.spAddComanda(cmd);
     }
-
 
     @Override
     protected void onSaveInstanceState(Bundle guardaEstado) {
