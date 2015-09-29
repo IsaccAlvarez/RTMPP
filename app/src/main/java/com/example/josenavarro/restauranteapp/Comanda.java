@@ -99,7 +99,7 @@ public class Comanda {
         mesa = clsGlobal.currentMesa.Id;
         clsGlobal.currentSaving = true;
         if (id == "0" & estado.equals("Activo")) {
-            spProcesarLinea(producto, descripcion, descripcion, precio, codigoComanda, clsGlobal.currentMesa.Id, "0", impresora, tipo, cedula, cantidad);
+            spProcesarLinea(producto, descripcion, descripcion, precio, clsGlobal.currentComanda, clsGlobal.currentMesa.Id, "0", impresora, tipo, cedula, cantidad);
         } else {
             if (estado == "Inactivo") {
                 spQuitar();
