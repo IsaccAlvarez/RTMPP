@@ -79,9 +79,11 @@ public class Comandas {
     public void spGuardar() {
         //Comprobar comanda y solicitud.
         clsGlobal.buscaCodigoComanda = false;
-        spComandaNumero(clsGlobal.currentMesa.Id);
-        while (clsGlobal.buscaCodigoComanda) {
-        }//espera que termine de buscar
+        if (clsGlobal.currentComanda.equals("0")) {
+               spComandaNumero(clsGlobal.currentMesa.Id);
+               while (clsGlobal.buscaCodigoComanda) {
+               }//espera que termine de buscar}
+        }
         comprobando = false;
         spComprobarSolicitud();
         while (comprobando) {

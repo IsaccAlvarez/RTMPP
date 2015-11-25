@@ -14,5 +14,6 @@
     <string name="Guardar">Guardar</string>
     <string name="Total_">Total:</string>
     <string name="title_activity_conexion">ConexionActivity</string>
+    <string name="Total">0</string>
 
 </resources>

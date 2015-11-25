@@ -377,7 +377,7 @@ public class MenuActivity extends ActionBarActivity {
                                                                                            glo.currentMesa.Id,
                                                                                            "0",
                                                                                            "0",
-                                                                                           "0",
+                                                                                           "COCINA",
                                                                                            "0", "Modificador");
                                                                                    ListaIdEnTabla.add(posicion + 1, note.getText().toString() + (posicion + 1));
                                                                                    ListaProductoEnTabla.add(posicion + 1, note.getText().toString());
@@ -495,11 +495,8 @@ public class MenuActivity extends ActionBarActivity {
     public void CalcularTotales() {
         try {
 
-            final TextView subtotal = (TextView) findViewById(R.id.txSubTotal);
-            final TextView total = (TextView) findViewById(R.id.txTotal);
-            final TextView impuesto = (TextView) findViewById(R.id.txImpuesto);
-            final TextView impuestoserv = (TextView) findViewById(R.id.txImpuestoServ);
-            double precio;
+              final TextView total = (TextView) findViewById(R.id.txTotal);
+               double precio;
             int i = 0;
             int cant = ListaPrecioEnTabla.size();
             for (i = 0; i < cant; i++) {
@@ -556,12 +553,7 @@ public class MenuActivity extends ActionBarActivity {
                 imp = clsGlobal.fnFormat(impIV);
                 tot = clsGlobal.fnFormat(Total);
             }
-            subtotal.setText(sub);
-            subtotal.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-            impuesto.setText(imp);
-            impuesto.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-            impuestoserv.setText(impS);
-            impuestoserv.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+
             total.setText(tot);
             total.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
             subT = 0;

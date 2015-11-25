@@ -139,7 +139,7 @@ public class Comanda {
                 sp.addProperty("_cDescripcion", _cDescripcion);
                 sp.addProperty("_Descripcion", _Descripcion);
                 sp.addProperty("_cPrecio", clsGlobal.fnFormatBD(precio));
-                sp.addProperty("_cCodigo", _cCodigo);
+                sp.addProperty("_cCodigo", clsGlobal.currentComanda);
                 sp.addProperty("_cMesa", _cMesa);
                 sp.addProperty("_cImpreso", _cImpreso);
                 sp.addProperty("_Impresora", _Impresora);
