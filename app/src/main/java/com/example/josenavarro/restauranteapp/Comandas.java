@@ -1,5 +1,6 @@
 package com.example.josenavarro.restauranteapp;
 
+import android.app.ProgressDialog;
 import android.util.Log;
 
 import org.ksoap2.SoapEnvelope;
@@ -76,23 +77,17 @@ public class Comandas {
         }
     }
 
-    public void spGuardar() {
+    public void spGuardar(int lineas) {
         //Comprobar comanda y solicitud.
         clsGlobal.buscaCodigoComanda = false;
-        if (clsGlobal.currentComanda.equals("0")) {
-               spComandaNumero(clsGlobal.currentMesa.Id);
-               while (clsGlobal.buscaCodigoComanda) {
-               }//espera que termine de buscar}
-        }
-        comprobando = false;
+        spComandaNumero(clsGlobal.currentMesa.Id);
         spComprobarSolicitud();
-        while (comprobando) {
-        }//cuando termine de comprobar la solicitud sigue
-       filas = lComanda.length;
-        for (int i = 0;i < filas; i++) {
-            while (clsGlobal.currentSaving){}
-             lComanda[i].spGuardar();
+        filas = lComanda.length;
+        for (int i = 0; i < filas; i++) {
+            lComanda[i].spGuardar();
+            Log.d("Guardar", "procesando fila");
         }
+        spActualizarMesa(clsGlobal.currentMesa.Id, lineas);
     }
 
     public void spComprobarSolicitud() {
@@ -114,10 +109,8 @@ public class Comandas {
         Thread hilo = new Thread() {
 
             String res = "0";
-
             @Override
             public void run() {
-
                 String NAMESPACE = new clsGlobal().NAMESPACE;
                 String URL = new clsGlobal().URL;
                 String METHOD_NAME = "fnNumeroSolicitud";
@@ -130,13 +123,13 @@ public class Comandas {
                 sobre.dotNet = true;
                 sobre.setOutputSoapObject(sp);
                 HttpTransportSE transporte = new HttpTransportSE(URL, clsGlobal.Time_out);
-
+                Log.d("Guardar", "Comprueba solicitud de comanda: " + clsGlobal.currentComanda.toString());
                 try {
 
                     transporte.call(SOAP_ACTION, sobre);
                     SoapPrimitive resulxml = (SoapPrimitive) sobre.getResponse();
                     res = resulxml.toString();
-                    Log.d("Solicitud", "Previa:" + res);
+                    Log.d("Guardar", "Termina comprueba solicitud: " + res);
                 } catch (IOException e) {
                     e.printStackTrace();
                     comprobando = false;
@@ -146,7 +139,7 @@ public class Comandas {
                     comprobando = false;
                 }
                 try {
-                    Log.d("Solicitud", "Solicitud:" + res);
+                    Log.d("Guardar", "Termina comprueba solicitud x: " + res);
                     clsGlobal.currentSolicitud = res;
                     comprobando = false;
 
@@ -162,7 +155,59 @@ public class Comandas {
         hilo.start();
     }
 
+    public void spActualizarMesa(final String _id, final int _lineas) {
+
+        Thread hilo = new Thread() {
+
+            String res = "0";
+
+            @Override
+            public void run() {
+                int lineas = _lineas;
+                if (lineas == 0) {
+                    clsGlobal.currentMesa.Estado = "0";
+                } else {
+                    clsGlobal.currentMesa.Estado = "1";
+                }
+                String NAMESPACE = new clsGlobal().NAMESPACE;
+                String URL = new clsGlobal().URL;
+                String METHOD_NAME = "fnActualizaMesa";
+                String SOAP_ACTION = new clsGlobal().SOAP_ACTION + "/fnActualizaMesa";
+
+                SoapObject sp = new SoapObject(NAMESPACE, METHOD_NAME);
+                sp.addProperty("_id", _id);
+                sp.addProperty("_activa", clsGlobal.currentMesa.Estado);
+                SoapSerializationEnvelope sobre = new SoapSerializationEnvelope(SoapEnvelope.VER11);
+                sobre.dotNet = true;
+                sobre.setOutputSoapObject(sp);
+                HttpTransportSE transporte = new HttpTransportSE(URL, clsGlobal.Time_out);
+
+                try {
+                    //TODO: Procesa linea revisar si se envia
+                    transporte.call(SOAP_ACTION, sobre);
+                    SoapPrimitive resulxml = (SoapPrimitive) sobre.getResponse();
+                    res = resulxml.toString();
+                    Log.d("Guardar", "Actualizar mesa");
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+
+                } catch (XmlPullParserException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        hilo.start();
+        try {
+            hilo.join();
+        } catch (InterruptedException ie) {
+
+        }
+
+    }
+
     void spComandaNumero(final String _cMesa) {
+
         if (clsGlobal.currentComanda.equals("0")) {
             clsGlobal.buscaCodigoComanda = true;
             Thread hilo = new Thread() {
@@ -183,12 +228,12 @@ public class Comandas {
                     sobre.dotNet = true;
                     sobre.setOutputSoapObject(sp);
                     HttpTransportSE transporte = new HttpTransportSE(URL, clsGlobal.Time_out);
-
+                    Log.d("Guardar", "Comprueba Comanda");
                     try {
-
                         transporte.call(SOAP_ACTION, sobre);
                         SoapPrimitive resulxml = (SoapPrimitive) sobre.getResponse();
                         res = resulxml.toString();
+                        Log.d("Guardar", "Comanda recuperada: " + res);
 
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -197,9 +242,7 @@ public class Comandas {
                         e.printStackTrace();
                     }
                     try {
-
                         clsGlobal.currentComanda = res;
-
                     } catch (Exception ex) {
                         clsGlobal.currentComanda = "0";
                     }
@@ -208,6 +251,11 @@ public class Comandas {
                 }
             };
             hilo.start();
+            try {
+                hilo.join();
+            } catch (InterruptedException ie) {
+
+            }
         }
     }
 
@@ -221,10 +269,10 @@ public class Comandas {
                     spRemoverComanda(pos + 1);
 
                 }
-
             }
         } catch (Exception ex) {
             ex.printStackTrace();
         }
     }
+
 }

@@ -38,6 +38,7 @@ public class ComandaActivity extends ActionBarActivity {
         setContentView(R.layout.activity_comanda);
         ActionBar actionBar = getSupportActionBar();
         getSupportActionBar().setCustomView(R.layout.action_bar);
+        MuestraSalones();
         ImageButton imageButton = (ImageButton) actionBar.getCustomView().findViewById(R.id.imageButton);
         imageButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -47,7 +48,7 @@ public class ComandaActivity extends ActionBarActivity {
             }
         });
         actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
-        CargarSalones();
+
 
     }
 
@@ -64,68 +65,24 @@ public class ComandaActivity extends ActionBarActivity {
 
     }
 
-    public void CargarSalones() {
-        Thread th = new Thread() {
-            TabHost tabs = (TabHost) findViewById(R.id.tabhost);
-
-            String ListaSalones[];
-            String ListaIdSalones[];
-
-            @Override
-            public void run() {
-                tabs.setup();
-                String NAMESPACE = new clsGlobal().NAMESPACE;
-                String URL = new clsGlobal().URL;
-                String METHOD_NAME = "fnCargarSalones";
-                String SOAP_ACTION = new clsGlobal().SOAP_ACTION + "/fnCargarSalones";
-
-                final SoapObject sp = new SoapObject(NAMESPACE, METHOD_NAME);
-                SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(SoapEnvelope.VER11);
-                envelope.dotNet = true;
-                envelope.setOutputSoapObject(sp);
-
-                HttpTransportSE transporte = new HttpTransportSE(URL, glo.Time_out);
-                try {
-                    transporte.call(SOAP_ACTION, envelope);
-                    SoapObject resul = (SoapObject) envelope.getResponse();
-                    SoapObject resul2 = (SoapObject) resul.getProperty(1);
-
-                    SoapObject filas = (SoapObject) resul2.getProperty(0);
-
-                    ListaSalones = new String[filas.getPropertyCount()];
-                    ListaIdSalones = new String[filas.getPropertyCount()];
-                    for (int i = 0; i < filas.getPropertyCount(); i++) {
-                        SoapObject columnas = (SoapObject) filas.getProperty(i);
-
-                        ListaSalones[i] = columnas.getProperty(1).toString();
-                        ListaIdSalones[i] = columnas.getProperty(0).toString();
-
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (XmlPullParserException e) {
-                    e.printStackTrace();
-                }
-
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (ListaSalones != null) {
-                            int pivot = clsGlobal.posSalon;
-
-                            for (int i = 0; i < ListaSalones.length; i++) {
-                                TabHost.TabSpec tSpecSalon = tabs.newTabSpec(ListaIdSalones[i].toString());
-                                tSpecSalon.setIndicator(ListaSalones[i].toString());
+    public void MuestraSalones() {
+              glo.cargandoSalones = true;
+              TabHost tabs = (TabHost) findViewById(R.id.tabhost);
+              tabs.setup();
+              if (glo.SalonesNombre  != null) {
+                  int pivot = clsGlobal.posSalon;
+                 for (int i = 0; i < glo.SalonesNombre.length; i++) {
+                                TabHost.TabSpec tSpecSalon = tabs.newTabSpec(glo.SalonesID[i].toString());
+                                tSpecSalon.setIndicator(glo.SalonesNombre[i].toString());
                                 tSpecSalon.setContent(new TabContent(getBaseContext()));
                                 tabs.addTab(tSpecSalon);
-                            }
-                            CargarMesas(ListaIdSalones[0].toString());
-                            TabHost.OnTabChangeListener tabChangeListener = new TabHost.OnTabChangeListener() {
+                 }
+                  TabHost.OnTabChangeListener tabChangeListener = new TabHost.OnTabChangeListener() {
                                 @Override
                                 public void onTabChanged(String tabId) {
-                                    clsGlobal.posSalon = tabs.getCurrentTab();
-                                   CargarMesas(tabId);
-                                }
+
+                                        CargarMesas(tabId);
+                                 }
                             };
                             tabs.setOnTabChangedListener(tabChangeListener);
                             tabs.setCurrentTab(0);
@@ -134,28 +91,24 @@ public class ComandaActivity extends ActionBarActivity {
                             tabs.setCurrentTab(0);
                             tabs.setCurrentTab(1);
                             tabs.setCurrentTab(pivot);
-
+                            glo.cargandoSalones = false;
+                            CargarMesas(glo.SalonesID[0].toString());
 
                         } else {
                             Toast.makeText(ComandaActivity.this, "Problema de conexion", Toast.LENGTH_LONG).show();
                         }
 
-                    }
-                });
-            }
-
-
-        };
-
-        th.start();
     }
-
-
     public void CargarMesas(final String idGrupoMesa) {
 
         while (clsGlobal.llamadaEnCurso) {
 
         }
+        if (glo.cargandoSalones == false){
+
+
+        TabHost tabs = (TabHost) findViewById(R.id.tabhost);
+        glo.posSalon = tabs.getCurrentTab();
         clsGlobal.llamadaEnCurso = true;
         Thread hilo = new Thread() {
             ListView listM = (ListView) findViewById(R.id.listMesa);
@@ -214,6 +167,7 @@ public class ComandaActivity extends ActionBarActivity {
                                                     ViewGroup parent) {
                                     View view = super.getView(position, convertView, parent);
                                     TextView textView = (TextView) view.findViewById(android.R.id.text1);
+                                    Log.d("Login","Cargando Mesa..");
                                     if (clsGlobal.currentMesa != null) {
 
                                         if (mesa[position].Id.equals(clsGlobal.currentMesa.Id)) {
@@ -236,6 +190,9 @@ public class ComandaActivity extends ActionBarActivity {
                                     } else if (mesa[position].Estado.equals("4")) {
                                         textView.setTextColor(Color.parseColor("#8A0808"));
                                     }
+
+
+
                                     return view;
                                 }
                             };
@@ -274,6 +231,7 @@ public class ComandaActivity extends ActionBarActivity {
         };
 
         hilo.start();
+    }
     }
 
 }

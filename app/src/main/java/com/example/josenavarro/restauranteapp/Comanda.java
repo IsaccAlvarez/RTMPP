@@ -90,24 +90,11 @@ public class Comanda {
             }
         };
         hilo.start();
-        while (clsGlobal.currentSaving) {
-        }
-    }
+        try {
+            hilo.join();
+        } catch (InterruptedException ie) {
 
-    public void spGuardar() {
-        String cedula = clsGlobal.IdUsuarioLog;
-        mesa = clsGlobal.currentMesa.Id;
-        clsGlobal.currentSaving = true;
-        if (id == "0" & estado.equals("Activo")) {
-            spProcesarLinea(producto, descripcion, descripcion, precio, clsGlobal.currentComanda, clsGlobal.currentMesa.Id, "0", impresora, tipo, cedula, cantidad);
-        } else {
-            if (estado == "Inactivo") {
-                spQuitar();
-            } else {
-                clsGlobal.currentSaving = false;
-            }
         }
-
     }
 
     void spProcesarLinea(final String _cProducto, final String _cDescripcion, final String _Descripcion,
@@ -120,8 +107,8 @@ public class Comanda {
 
             @Override
             public void run() {
+                Log.d("Guardar", "Descrip: " + _cDescripcion);
                 NumberFormat fmt = NumberFormat.getNumberInstance(Locale.US);
-
                 double precio = 0;
                 try {
                     precio = fmt.parse(_cPrecio).doubleValue();
@@ -133,7 +120,6 @@ public class Comanda {
                 String URL = new clsGlobal().URL;
                 String METHOD_NAME = "fnTerminarComanda";
                 String SOAP_ACTION = new clsGlobal().SOAP_ACTION + "/fnTerminarComanda";
-
                 SoapObject sp = new SoapObject(NAMESPACE, METHOD_NAME);
                 sp.addProperty("_cProducto", _cProducto);
                 sp.addProperty("_cDescripcion", _cDescripcion);
@@ -151,15 +137,13 @@ public class Comanda {
                 sobre.dotNet = true;
                 sobre.setOutputSoapObject(sp);
                 HttpTransportSE transporte = new HttpTransportSE(URL, clsGlobal.Time_out);
-                Log.d("Guardar Comanda", "Pase transporte");
+                Log.d("Guardar Comanda", "");
                 try {
 
                     transporte.call(SOAP_ACTION, sobre);
                     SoapPrimitive resulxml = (SoapPrimitive) sobre.getResponse();
                     res = resulxml.toString();
                     Log.d("Guardar Comanda", "Respuesta Envio: " + res);
-
-
                 } catch (IOException e) {
                     e.printStackTrace();
 
@@ -178,11 +162,27 @@ public class Comanda {
 
         };
         hilo.start();
-        if (clsGlobal.currentSaving) {
+        try {
+            hilo.join();
+        } catch (InterruptedException ie) {
 
+        }
+    }
+
+    public void spGuardar() {
+
+        String cedula = clsGlobal.IdUsuarioLog;
+        mesa = clsGlobal.currentMesa.Id;
+        clsGlobal.currentSaving = true;
+        if (id == "0" & estado.equals("Activo")) {
+            spProcesarLinea(producto, descripcion, descripcion, precio, clsGlobal.currentComanda, clsGlobal.currentMesa.Id, "0", impresora, tipo, cedula, cantidad);
+        } else {
+            if (estado == "Inactivo") {
+                spQuitar();
+            } else {
+                clsGlobal.currentSaving = false;
+            }
         }
 
     }
-
-
 }

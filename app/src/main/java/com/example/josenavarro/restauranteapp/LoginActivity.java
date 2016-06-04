@@ -4,10 +4,10 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.ActionBarActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -79,6 +79,7 @@ public class LoginActivity extends ActionBarActivity {
         CargarModificadores();
         CargarAcompanamientos();
         CargarTodosModificadores();
+        CargarSalones();
     }
 
     @Override
@@ -131,7 +132,7 @@ public class LoginActivity extends ActionBarActivity {
             @Override
             public void run() {
 
-                String contra = ((EditText) findViewById(R.id.txPassword)).getText().toString().trim();
+                String contra = ((EditText) findViewById(R.id.txClave)).getText().toString().trim();
                 String NAMESPACE = new clsGlobal().NAMESPACE;
                 String URL = new clsGlobal().URL;
                 String METHOD_NAME = "fnLogin";
@@ -188,7 +189,7 @@ public class LoginActivity extends ActionBarActivity {
 
     public void CargarUsuarioId() {
         Thread th = new Thread() {
-            Spinner cbUser = (Spinner) findViewById(R.id.spinner);
+            Spinner cbUser = (Spinner) findViewById(R.id.spinUsuario);
             String ListaUsuarios[];
             String ListaId[];
 
@@ -592,5 +593,53 @@ public class LoginActivity extends ActionBarActivity {
 
         hilo.start();
     }
+    public void CargarSalones() {
+        Thread th = new Thread() {
+                         @Override
+            public void run() {
+                String NAMESPACE = new clsGlobal().NAMESPACE;
+                String URL = new clsGlobal().URL;
+                String METHOD_NAME = "fnCargarSalones";
+                String SOAP_ACTION = new clsGlobal().SOAP_ACTION + "/fnCargarSalones";
 
+                final SoapObject sp = new SoapObject(NAMESPACE, METHOD_NAME);
+                SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(SoapEnvelope.VER11);
+                envelope.dotNet = true;
+                envelope.setOutputSoapObject(sp);
+
+                HttpTransportSE transporte = new HttpTransportSE(URL, glo.Time_out);
+                try {
+                    transporte.call(SOAP_ACTION, envelope);
+                    SoapObject resul = (SoapObject) envelope.getResponse();
+                    SoapObject resul2 = (SoapObject) resul.getProperty(1);
+
+                    SoapObject filas = (SoapObject) resul2.getProperty(0);
+
+                    glo.SalonesID = new String[filas.getPropertyCount()];
+                    glo.SalonesNombre = new String[filas.getPropertyCount()];
+                    for (int i = 0; i < filas.getPropertyCount(); i++) {
+                        SoapObject columnas = (SoapObject) filas.getProperty(i);
+
+                        glo.SalonesNombre[i] = columnas.getProperty(1).toString();
+                        glo.SalonesID[i] = columnas.getProperty(0).toString();
+                    }
+                    Log.d("Login","Cargue salones");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (XmlPullParserException e) {
+                    e.printStackTrace();
+                }
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                    }
+                });
+            }
+
+
+        };
+
+        th.start();
+    }
 }

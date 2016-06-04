@@ -1,4 +1,5 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
     android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
@@ -9,51 +10,50 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Usuario:"
-        android:id="@+id/lbIniciales"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Contraseña:"
+        android:text="Clave: "
         android:id="@+id/lbContraseña"
         android:layout_gravity="center_vertical"
-        android:layout_below="@+id/spinner"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_below="@+id/spinUsuario"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="35dp" />
 
     <Spinner
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/spinner"
+        android:id="@+id/spinUsuario"
         android:spinnerMode="dialog"
-        android:layout_below="@+id/lbIniciales"
-        android:layout_toRightOf="@+id/lbIniciales"
-        android:layout_toEndOf="@+id/lbIniciales" />
+        android:layout_alignParentTop="true"
+        android:layout_alignEnd="@+id/txClave"
+        android:layout_alignParentStart="true"
+        android:longClickable="false"
+        android:background="@android:drawable/editbox_background_normal"
+        />
 
-    <EditText
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:inputType="textPassword"
-        android:ems="10"
-        android:id="@+id/txPassword"
-        android:layout_gravity="center_vertical"
-        android:layout_below="@+id/lbContraseña"
-        android:layout_toRightOf="@+id/lbIniciales"
-        android:layout_toEndOf="@+id/lbIniciales" />
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Ingresar"
+        android:text="Aceptar"
         android:id="@+id/btIngresar"
         android:onClick="LoginOnClick"
-        android:layout_centerHorizontal="true"
         android:layout_gravity="center_vertical"
-        android:layout_below="@+id/txPassword" />
+        android:layout_below="@+id/lbContraseña"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="30dp"
+        android:layout_alignEnd="@+id/txClave" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textPassword"
+        android:ems="10"
+        android:id="@+id/txClave"
+        android:layout_gravity="center_vertical"
+        android:layout_above="@+id/btIngresar"
+        android:layout_toEndOf="@+id/lbContraseña"
+        android:singleLine="true"
+        android:selectAllOnFocus="true"
+        android:background="@android:drawable/editbox_background_normal"
+        />
 
 </RelativeLayout>

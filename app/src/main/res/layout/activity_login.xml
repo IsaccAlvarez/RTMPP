@@ -10,7 +10,7 @@
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="Usuario:"
-        android:id="@+id/lbIniciales"
+        android:id="@+id/lbUsuario"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
@@ -21,42 +21,40 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="Contraseña:"
         android:id="@+id/lbContraseña"
-        android:layout_below="@+id/spinner"
+        android:layout_below="@+id/spinUsuario"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
+
+    <Spinner
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/spinUsuario"
+        android:spinnerMode="dialog"
+        android:layout_below="@+id/lbUsuario"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:clickable="true"
+        android:touchscreenBlocksFocus="false"
+        android:transitionGroup="false"
+        android:layout_alignEnd="@+id/txClave" />
 
     <EditText
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:inputType="textPassword"
         android:ems="10"
-        android:id="@+id/txPassword"
+        android:id="@+id/txClave"
         android:layout_below="@+id/lbContraseña"
-        android:layout_alignRight="@+id/spinner"
-        android:layout_alignEnd="@+id/spinner"
-        android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Ingresar"
+        android:text="Aceptar"
         android:id="@+id/btIngresar"
         android:onClick="LoginOnClick"
-        android:layout_below="@+id/txPassword"
-        android:layout_centerHorizontal="true" />
-
-    <Spinner
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/spinner"
-        android:spinnerMode="dialog"
-        android:layout_below="@+id/lbIniciales"
-        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/txClave"
         android:layout_alignParentStart="true"
-        android:clickable="true"
-        android:touchscreenBlocksFocus="false"
-        android:transitionGroup="false"
-        style="@style/Base.TextAppearance.AppCompat.Large" />
+        android:layout_alignEnd="@+id/txClave" />
 
 </RelativeLayout>

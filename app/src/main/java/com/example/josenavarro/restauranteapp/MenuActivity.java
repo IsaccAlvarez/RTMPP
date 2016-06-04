@@ -15,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListAdapter;
@@ -95,11 +96,7 @@ public class MenuActivity extends ActionBarActivity {
     protected void onDestroy() {
         super.onDestroy();
         int lineas = ListaProductoEnTabla.size();
-        if (lineas == 0) {
-            spActualizarMesa(clsGlobal.currentMesa.Id, "0");
-        } else {
-            spActualizarMesa(clsGlobal.currentMesa.Id, "1");
-        }
+        spActualizarMesa(clsGlobal.currentMesa.Id, lineas);
     }
 
     public void CargarCategorias() {
@@ -128,6 +125,56 @@ public class MenuActivity extends ActionBarActivity {
 
         } else {
             Toast.makeText(MenuActivity.this, "Error al cargar las categorias", Toast.LENGTH_LONG).show();
+        }
+
+    }
+    public void spActualizarMesa(final String _id, final int _lineas) {
+
+        Thread hilo = new Thread() {
+
+            String res = "0";
+
+            @Override
+            public void run() {
+                int lineas = _lineas;
+                if (lineas == 0) {
+                    clsGlobal.currentMesa.Estado = "0";
+                } else {
+                    clsGlobal.currentMesa.Estado = "1";
+                }
+                String NAMESPACE = new clsGlobal().NAMESPACE;
+                String URL = new clsGlobal().URL;
+                String METHOD_NAME = "fnActualizaMesa";
+                String SOAP_ACTION = new clsGlobal().SOAP_ACTION + "/fnActualizaMesa";
+
+                SoapObject sp = new SoapObject(NAMESPACE, METHOD_NAME);
+                sp.addProperty("_id", _id);
+                sp.addProperty("_activa", clsGlobal.currentMesa.Estado);
+                SoapSerializationEnvelope sobre = new SoapSerializationEnvelope(SoapEnvelope.VER11);
+                sobre.dotNet = true;
+                sobre.setOutputSoapObject(sp);
+                HttpTransportSE transporte = new HttpTransportSE(URL, clsGlobal.Time_out);
+
+                try {
+                    //TODO: Procesa linea revisar si se envia
+                    transporte.call(SOAP_ACTION, sobre);
+                    SoapPrimitive resulxml = (SoapPrimitive) sobre.getResponse();
+                    res = resulxml.toString();
+                    Log.d("Guardar", "Actualizar mesa");
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+
+                } catch (XmlPullParserException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        hilo.start();
+        try {
+            hilo.join();
+        } catch (InterruptedException ie) {
+
         }
 
     }
@@ -495,8 +542,8 @@ public class MenuActivity extends ActionBarActivity {
     public void CalcularTotales() {
         try {
 
-              final TextView total = (TextView) findViewById(R.id.txTotal);
-               double precio;
+            final TextView total = (TextView) findViewById(R.id.txTotal);
+            double precio;
             int i = 0;
             int cant = ListaPrecioEnTabla.size();
             for (i = 0; i < cant; i++) {
@@ -662,22 +709,28 @@ public class MenuActivity extends ActionBarActivity {
     }
 
     public void btGuardarClick(View v) {
+
         spGuardar();
-        finish();
     }
 
     private void spGuardar() {
+        //TODO: Bloquear boton
+        Log.d("Guardar", "Guardando...");
+        Button btn = (Button) findViewById(R.id.btGuardadoComanda);
+        btn.setEnabled(false);
+        btn.setClickable(false);
+        final ProgressDialog dialogo = ProgressDialog.show(MenuActivity.this, "Espere", "Guardando datos...");
+        Thread proceso = new Thread() {
+            public void run() {
+                Log.d("Guardar", "Inicia Guardado");
+                clsGlobal.ListaComanda.spGuardar(ListaCantidadEnTabla.size());
+                dialogo.dismiss();
+                finish();
+                Log.d("Guardar", "Finaliza Guardado");
+            }
+        };
+        proceso.start();
 
-        clsGlobal.ListaComanda.spGuardar();
-
-        int lineas = ListaProductoEnTabla.size();
-        if (lineas == 0) {
-            clsGlobal.currentMesa.Estado = "0";
-            spActualizarMesa(clsGlobal.currentMesa.Id, "0");
-
-        } else {
-            clsGlobal.currentMesa.Estado = "1";
-        }
     }
 
     private void spRemoverComanda(int pos) {
@@ -695,53 +748,11 @@ public class MenuActivity extends ActionBarActivity {
             ex.printStackTrace();
         }
     }
-
-    void spActualizarMesa(final String _id, final String _estado) {
-
-        Thread hilo = new Thread() {
-
-            String res = "0";
-
-            @Override
-            public void run() {
-                String NAMESPACE = new clsGlobal().NAMESPACE;
-                String URL = new clsGlobal().URL;
-                String METHOD_NAME = "fnActualizaMesa";
-                String SOAP_ACTION = new clsGlobal().SOAP_ACTION + "/fnActualizaMesa";
-
-                SoapObject sp = new SoapObject(NAMESPACE, METHOD_NAME);
-                sp.addProperty("_id", _id);
-                sp.addProperty("_activa", _estado);
-                SoapSerializationEnvelope sobre = new SoapSerializationEnvelope(SoapEnvelope.VER11);
-                sobre.dotNet = true;
-                sobre.setOutputSoapObject(sp);
-                HttpTransportSE transporte = new HttpTransportSE(URL, clsGlobal.Time_out);
-
-                try {
-                    //TODO: Procesa linea Revisar si se envia la petici�n
-                    transporte.call(SOAP_ACTION, sobre);
-                    SoapPrimitive resulxml = (SoapPrimitive) sobre.getResponse();
-                    res = resulxml.toString();
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-
-                } catch (XmlPullParserException e) {
-                    e.printStackTrace();
-                }
-            }
-        };
-        hilo.start();
-
-    }
-
     public void spAddComanda(Comanda cmd) {
         cmd.solicitud = glo.currentSolicitud;
         if (cmd.codigoComanda.equals("0")) {
             cmd.codigoComanda = glo.currentComanda;
-
         }
-
         clsGlobal.ListaComanda.spAddComanda(cmd);
     }
 

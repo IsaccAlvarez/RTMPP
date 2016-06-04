@@ -36,8 +36,9 @@ public class clsGlobal {
     public static String currentImpresora = "";
     public static String currentSolicitud = "0";
     public static boolean llamadaEnCurso= false;
-
-
+    public static String SalonesNombre[];
+    public static String SalonesID[];
+    public static boolean cargandoSalones = true;
     clsGlobal(){
         URL = "http://" + DireccionIP + "/WSRest.asmx";
     }
