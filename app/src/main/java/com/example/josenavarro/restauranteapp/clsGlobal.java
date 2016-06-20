@@ -11,7 +11,11 @@ import java.util.Locale;
  * Created by Jose Navarro on 13/05/2015.
  */
 public class clsGlobal {
+    public static String ListaUsuarios[];
+    public static String ListaId[];
+
     public static boolean currentSaving= false;
+    public static boolean mesaAbierta= false;
     public static String DireccionIP= "192.168.1.11";
     public static int posUltimoUsuarioLog = 0;
     public static String IdUsuarioLog;

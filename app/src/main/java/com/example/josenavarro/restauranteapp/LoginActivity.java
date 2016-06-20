@@ -50,6 +50,15 @@ public class LoginActivity extends ActionBarActivity {
         setContentView(R.layout.activity_login);
 
         System.setProperty("http.keepAlive", "false");
+        Log.d("Login", "Entrando apenas");
+        progressDialog = new ProgressDialog(LoginActivity.this);
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        progressDialog.setMessage("Cargando...");
+        progressDialog.setMax(100);
+        progressDialog.setProgress(0);
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
         clsGlobal.ObtenerConfiguracion(this);
         if (!VerificaConexion.verificaConexion(this)) {
             Toast.makeText(getBaseContext(),
@@ -58,20 +67,13 @@ public class LoginActivity extends ActionBarActivity {
             this.finish();
             return;
         }
-        Log.d("Login","Verificando Acceso BD");
-        if (!VerificaConexion.verificaAccesoBD()){
+
+        if (!VerificaConexion.verificaAccesoBD()) {
             Intent comandaForm = new Intent(LoginActivity.this, ConexionActivity.class);
             startActivity(comandaForm);
             this.finish();
             return;
         }
-        progressDialog = new ProgressDialog(LoginActivity.this);
-        progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-        progressDialog.setMessage("Cargando...");
-        progressDialog.setMax(100);
-        progressDialog.setProgress(0);
-        progressDialog.setCancelable(false);
-        progressDialog.show();
 
         CargarUsuarioId();
         CargarCategorias();
@@ -93,7 +95,9 @@ public class LoginActivity extends ActionBarActivity {
                     .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            LoginActivity.this.finish();
+                            finish();
+                            int p = android.os.Process.myPid();
+                            android.os.Process.killProcess(p);
                         }
                     })
                     .show();
@@ -188,14 +192,12 @@ public class LoginActivity extends ActionBarActivity {
     }
 
     public void CargarUsuarioId() {
+
         Thread th = new Thread() {
             Spinner cbUser = (Spinner) findViewById(R.id.spinUsuario);
-            String ListaUsuarios[];
-            String ListaId[];
 
             @Override
             public void run() {
-
                 String NAMESPACE = new clsGlobal().NAMESPACE;
                 String URL = new clsGlobal().URL;
                 String METHOD_NAME = "fnCargarIdUsuarios";
@@ -209,24 +211,27 @@ public class LoginActivity extends ActionBarActivity {
 
                 HttpTransportSE transporte = new HttpTransportSE(URL, glo.Time_out);
                 try {
-
-                    transporte.call(SOAP_ACTION, envelope);
-                    Message msg = new Message();
-                    msg.obj = 10;
-                    puente.sendMessage(msg);
-                    SoapObject resul = (SoapObject) envelope.getResponse();
-                    SoapObject resul2 = (SoapObject) resul.getProperty(1);
-                    if (resul2.getPropertyCount() > 0) {
-                        SoapObject filas = (SoapObject) resul2.getProperty(0);
-                        ListaUsuarios = new String[filas.getPropertyCount()];
-                        ListaId = new String[filas.getPropertyCount()];
-                        for (int i = 0; i < filas.getPropertyCount(); i++) {
-                            SoapObject columnas = (SoapObject) filas.getProperty(i);
-                            ListaUsuarios[i] = columnas.getProperty(1).toString();
-                            ListaId[i] = columnas.getProperty(0).toString();
+                    if (glo.ListaUsuarios == null) {
+                        transporte.call(SOAP_ACTION, envelope);
+                        Message msg = new Message();
+                        msg.obj = 10;
+                        puente.sendMessage(msg);
+                        SoapObject resul = (SoapObject) envelope.getResponse();
+                        SoapObject resul2 = (SoapObject) resul.getProperty(1);
+                        if (resul2.getPropertyCount() > 0) {
+                            SoapObject filas = (SoapObject) resul2.getProperty(0);
+                            glo.ListaUsuarios = new String[filas.getPropertyCount()];
+                            glo.ListaId = new String[filas.getPropertyCount()];
+                            for (int i = 0; i < filas.getPropertyCount(); i++) {
+                                SoapObject columnas = (SoapObject) filas.getProperty(i);
+                                glo.ListaUsuarios[i] = columnas.getProperty(1).toString();
+                                glo.ListaId[i] = columnas.getProperty(0).toString();
+                            }
                         }
-                        Log.d("Login", "Termine de cargarlos");
-
+                    } else {
+                        Message msg = new Message();
+                        msg.obj = 10;
+                        puente.sendMessage(msg);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -239,24 +244,26 @@ public class LoginActivity extends ActionBarActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        if (ListaUsuarios != null) {
-                            ArrayAdapter<String> adapter = new ArrayAdapter<String>(cbUser.getContext(), android.R.layout.simple_spinner_item, ListaUsuarios);
+                        if (glo.ListaUsuarios != null) {
+                            ArrayAdapter<String> adapter = new ArrayAdapter<String>(cbUser.getContext(), android.R.layout.simple_spinner_item, glo.ListaUsuarios);
                             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                             cbUser.setAdapter(adapter);
-                            cbUser.setSelection(clsGlobal.posUltimoUsuarioLog);
                             cbUser.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                                 @Override
                                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                     clsGlobal.posUltimoUsuarioLog = cbUser.getSelectedItemPosition();
-                                    clsGlobal.IdUsuarioLog = ListaId[clsGlobal.posUltimoUsuarioLog].toString();
-                                    clsGlobal.NombreUsuarioLog = ListaUsuarios[clsGlobal.posUltimoUsuarioLog].toString();
+                                    clsGlobal.IdUsuarioLog = glo.ListaId[clsGlobal.posUltimoUsuarioLog].toString();
+                                    clsGlobal.NombreUsuarioLog = glo.ListaUsuarios[clsGlobal.posUltimoUsuarioLog].toString();
                                 }
 
                                 @Override
                                 public void onNothingSelected(AdapterView<?> parent) {
                                 }
-                            });
 
+                            });
+                            if (glo.ListaId.length > clsGlobal.posUltimoUsuarioLog) {
+                                cbUser.setSelection(clsGlobal.posUltimoUsuarioLog);
+                            }
                         } else {
                             Toast.makeText(LoginActivity.this, "Login: Problema de conexion", Toast.LENGTH_LONG).show();
                         }
@@ -265,6 +272,7 @@ public class LoginActivity extends ActionBarActivity {
             }
         };
         th.start();
+
     }
 
     public void CargarCategorias() {
@@ -285,26 +293,33 @@ public class LoginActivity extends ActionBarActivity {
 
                 HttpTransportSE transporte = new HttpTransportSE(URL, glo.Time_out);
                 try {
+                    if (glo.lCategoria == null) {
+                        transporte.call(SOAP_ACTION, envelope);
+                        Message msg = new Message();
+                        msg.obj = 20;
+                        puente.sendMessage(msg);
+                        SoapObject resul = (SoapObject) envelope.getResponse();
+                        SoapObject resul2 = (SoapObject) resul.getProperty(1);
 
-                    transporte.call(SOAP_ACTION, envelope);
-                    Message msg = new Message();
-                    msg.obj = 20;
-                    puente.sendMessage(msg);
-                    SoapObject resul = (SoapObject) envelope.getResponse();
-                    SoapObject resul2 = (SoapObject) resul.getProperty(1);
+                        if (resul2.getPropertyCount() > 0) {
+                            SoapObject filas = (SoapObject) resul2.getProperty(0);
 
-                    if (resul2.getPropertyCount() > 0) {
-                        SoapObject filas = (SoapObject) resul2.getProperty(0);
+                            glo.lCategoria = new Categoria[filas.getPropertyCount()];
 
-                        glo.lCategoria = new Categoria[filas.getPropertyCount()];
-
-                        for (int i = 0; i < filas.getPropertyCount(); i++) {
-                            SoapObject columnas = (SoapObject) filas.getProperty(i);
-                            glo.lCategoria[i] = new Categoria();
-                            glo.lCategoria[i].codigo = columnas.getProperty(0).toString();
-                            glo.lCategoria[i].descripcion = columnas.getProperty(1).toString();
-                            glo.lCategoria[i].color = columnas.getProperty(2).toString();
+                            for (int i = 0; i < filas.getPropertyCount(); i++) {
+                                SoapObject columnas = (SoapObject) filas.getProperty(i);
+                                glo.lCategoria[i] = new Categoria();
+                                glo.lCategoria[i].codigo = columnas.getProperty(0).toString();
+                                glo.lCategoria[i].descripcion = columnas.getProperty(1).toString();
+                                glo.lCategoria[i].color = columnas.getProperty(2).toString();
+                            }
                         }
+
+
+                    } else {
+                        Message msg = new Message();
+                        msg.obj = 20;
+                        puente.sendMessage(msg);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -415,28 +430,32 @@ public class LoginActivity extends ActionBarActivity {
 
                 HttpTransportSE transporte = new HttpTransportSE(URL, glo.Time_out);
                 try {
+                    if (glo.lMod == null) {
+                        transporte.call(SOAP_ACTION, envelope);
+                        Message msg = new Message();
+                        msg.obj = 20;
+                        puente.sendMessage(msg);
+                        SoapObject resul = (SoapObject) envelope.getResponse();
+                        SoapObject resul2 = (SoapObject) resul.getProperty(1);
+                        if (resul2.getPropertyCount() > 0) {
+                            SoapObject filas = (SoapObject) resul2.getProperty(0);
 
-                    transporte.call(SOAP_ACTION, envelope);
-                    Message msg = new Message();
-                    msg.obj = 20;
-                    puente.sendMessage(msg);
-                    SoapObject resul = (SoapObject) envelope.getResponse();
-                    SoapObject resul2 = (SoapObject) resul.getProperty(1);
-                    if (resul2.getPropertyCount() > 0) {
-                        SoapObject filas = (SoapObject) resul2.getProperty(0);
-
-                        glo.lMod = new Modificadores[filas.getPropertyCount()];
-
-
-                        for (int i = 0; i < filas.getPropertyCount(); i++) {
-                            SoapObject columnas = (SoapObject) filas.getProperty(i);
-                            glo.lMod[i] = new Modificadores();
-                            glo.lMod[i].descripcion = columnas.getProperty(1).toString();
+                            glo.lMod = new Modificadores[filas.getPropertyCount()];
 
 
+                            for (int i = 0; i < filas.getPropertyCount(); i++) {
+                                SoapObject columnas = (SoapObject) filas.getProperty(i);
+                                glo.lMod[i] = new Modificadores();
+                                glo.lMod[i].descripcion = columnas.getProperty(1).toString();
+
+
+                            }
                         }
+                    } else {
+                        Message msg = new Message();
+                        msg.obj = 20;
+                        puente.sendMessage(msg);
                     }
-
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (XmlPullParserException e) {
@@ -482,31 +501,36 @@ public class LoginActivity extends ActionBarActivity {
                 HttpTransportSE transporte = new HttpTransportSE(URL, glo.Time_out);
 
                 try {
+                    if (glo.lAcom == null) {
+                        transporte.call(SOAP_ACTION, envelope);
+                        Message msg = new Message();
+                        msg.obj = 10;
+                        puente.sendMessage(msg);
+                        SoapObject resul = (SoapObject) envelope.getResponse();
+                        if (resul.getPropertyCount() > 0) {
+                            glo.lAcom = new Acompañamiento[1];
+                            SoapObject resul2 = (SoapObject) resul.getProperty(1);
+                            if (resul2.getPropertyCount() > 0) {
+                                SoapObject filas = (SoapObject) resul2.getProperty(0);
+                                glo.lAcom = new Acompañamiento[filas.getPropertyCount()];
 
-                    transporte.call(SOAP_ACTION, envelope);
-                    Message msg = new Message();
-                    msg.obj = 10;
-                    puente.sendMessage(msg);
-                    SoapObject resul = (SoapObject) envelope.getResponse();
-                    if (resul.getPropertyCount() > 0) {
-                        glo.lAcom = new Acompañamiento[1];
-                        SoapObject resul2 = (SoapObject) resul.getProperty(1);
-                        if (resul2.getPropertyCount() > 0) {
-                            SoapObject filas = (SoapObject) resul2.getProperty(0);
-                            glo.lAcom = new Acompañamiento[filas.getPropertyCount()];
 
+                                for (int i = 0; i < filas.getPropertyCount(); i++) {
+                                    SoapObject columnas = (SoapObject) filas.getProperty(i);
+                                    glo.lAcom[i] = new Acompañamiento();
+                                    glo.lAcom[i].codigo = columnas.getProperty(0).toString();
+                                    glo.lAcom[i].descripcion = columnas.getProperty(1).toString();
+                                    glo.lAcom[i].categoria = columnas.getProperty(4).toString();
 
-                            for (int i = 0; i < filas.getPropertyCount(); i++) {
-                                SoapObject columnas = (SoapObject) filas.getProperty(i);
-                                glo.lAcom[i] = new Acompañamiento();
-                                glo.lAcom[i].codigo = columnas.getProperty(0).toString();
-                                glo.lAcom[i].descripcion = columnas.getProperty(1).toString();
-                                glo.lAcom[i].categoria = columnas.getProperty(4).toString();
-
+                                }
                             }
                         }
-                    }
 
+                    } else {
+                        Message msg = new Message();
+                        msg.obj = 10;
+                        puente.sendMessage(msg);
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (XmlPullParserException e) {
@@ -549,25 +573,31 @@ public class LoginActivity extends ActionBarActivity {
 
                 HttpTransportSE transporte = new HttpTransportSE(URL, glo.Time_out);
                 try {
-                    transporte.call(SOAP_ACTION, envelope);
-                    Message msg = new Message();
-                    msg.obj = 20;
-                    puente.sendMessage(msg);
-                    SoapObject resul = (SoapObject) envelope.getResponse();
-                    if (resul.getPropertyCount() > 0) {
-                        SoapObject resul2 = (SoapObject) resul.getProperty(1);
-                        if (resul2.getPropertyCount() > 0) {
-                            SoapObject filas = (SoapObject) resul2.getProperty(0);
+                    if (glo.ListaTodosModificadores == null) {
+                        transporte.call(SOAP_ACTION, envelope);
+                        Message msg = new Message();
+                        msg.obj = 20;
+                        puente.sendMessage(msg);
+                        SoapObject resul = (SoapObject) envelope.getResponse();
+                        if (resul.getPropertyCount() > 0) {
+                            SoapObject resul2 = (SoapObject) resul.getProperty(1);
+                            if (resul2.getPropertyCount() > 0) {
+                                SoapObject filas = (SoapObject) resul2.getProperty(0);
 
-                            glo.ListaTodosModificadores = new String[filas.getPropertyCount()];
+                                glo.ListaTodosModificadores = new String[filas.getPropertyCount()];
 
-                            for (int i = 0; i < filas.getPropertyCount(); i++) {
-                                SoapObject columnas = (SoapObject) filas.getProperty(i);
+                                for (int i = 0; i < filas.getPropertyCount(); i++) {
+                                    SoapObject columnas = (SoapObject) filas.getProperty(i);
 
-                                glo.ListaTodosModificadores[i] = columnas.getProperty(1).toString();
+                                    glo.ListaTodosModificadores[i] = columnas.getProperty(1).toString();
 
+                                }
                             }
                         }
+                    } else {
+                        Message msg = new Message();
+                        msg.obj = 20;
+                        puente.sendMessage(msg);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -593,9 +623,10 @@ public class LoginActivity extends ActionBarActivity {
 
         hilo.start();
     }
+
     public void CargarSalones() {
         Thread th = new Thread() {
-                         @Override
+            @Override
             public void run() {
                 String NAMESPACE = new clsGlobal().NAMESPACE;
                 String URL = new clsGlobal().URL;
@@ -609,6 +640,9 @@ public class LoginActivity extends ActionBarActivity {
 
                 HttpTransportSE transporte = new HttpTransportSE(URL, glo.Time_out);
                 try {
+                    if (glo.SalonesID ==null){
+
+
                     transporte.call(SOAP_ACTION, envelope);
                     SoapObject resul = (SoapObject) envelope.getResponse();
                     SoapObject resul2 = (SoapObject) resul.getProperty(1);
@@ -623,7 +657,8 @@ public class LoginActivity extends ActionBarActivity {
                         glo.SalonesNombre[i] = columnas.getProperty(1).toString();
                         glo.SalonesID[i] = columnas.getProperty(0).toString();
                     }
-                    Log.d("Login","Cargue salones");
+                    Log.d("Login", "Cargue salones");
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (XmlPullParserException e) {

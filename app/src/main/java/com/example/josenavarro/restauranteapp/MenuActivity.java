@@ -97,6 +97,7 @@ public class MenuActivity extends ActionBarActivity {
         super.onDestroy();
         int lineas = ListaProductoEnTabla.size();
         spActualizarMesa(clsGlobal.currentMesa.Id, lineas);
+        glo.mesaAbierta=false;
     }
 
     public void CargarCategorias() {
