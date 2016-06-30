@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.Arrays;
 
 
 /**
@@ -210,6 +211,8 @@ public class MenuActivity extends ActionBarActivity {
                         pos++;
                     }
                 }
+
+                 Arrays.sort(lNombreMenu);
 
                 ArrayAdapter<String> adapter = new ArrayAdapter<String>(listMenu.getContext(), android.R.layout.simple_list_item_1, lNombreMenu) {
                     @Override
