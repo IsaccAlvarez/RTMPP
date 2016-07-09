@@ -19,13 +19,12 @@ import android.widget.Toast;
 
 import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.SoapObject;
+import org.ksoap2.serialization.SoapPrimitive;
 import org.ksoap2.serialization.SoapSerializationEnvelope;
 import org.ksoap2.transport.HttpTransportSE;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
-import java.util.Timer;
-import java.util.TimerTask;
 
 
 /**
@@ -45,7 +44,7 @@ public class ComandaActivity extends ActionBarActivity {
         imageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                spActualizar();
+                spRefresh();
 
             }
         });
@@ -68,21 +67,23 @@ public class ComandaActivity extends ActionBarActivity {
 
 
     }
-
-
-    protected void onRestart() {
-        super.onRestart();
+    protected void onResume() {
+        super.onResume();
         spActualizar();
+    }
+    private void spRefresh(){
+        finish();
+        startActivity(getIntent());
 
     }
 
-    private void spActualizar() {
-        if (glo.mesaAbierta == false){
-            Intent refresh = new Intent(ComandaActivity.this, ComandaActivity.class);
-            startActivity(refresh);//Start the same Activity
-            finish(); //finish Activity.
+     private void spActualizar() {
+        if (glo.EstadoMesa.equals("true")){
+          Toast.makeText(ComandaActivity.this, "La mesa esta siendo usada por otro usuario", Toast.LENGTH_LONG).show();
+            glo.EstadoMesa = "false";
         }
-    }
+         CargarMesas(getIdSalon(glo.posSalon));
+     }
 
     private String getIdSalon(int pos) {
         if (glo.SalonesNombre != null) {
@@ -116,7 +117,7 @@ public class ComandaActivity extends ActionBarActivity {
             Toast.makeText(ComandaActivity.this, "Problema de conexion", Toast.LENGTH_LONG).show();
         }
         glo.cargandoSalones = false;
-        CargarMesas(getIdSalon(glo.posSalon));
+
     }
 
     public void CargarMesas(final String idGrupoMesa) {
@@ -188,16 +189,7 @@ public class ComandaActivity extends ActionBarActivity {
                                         View view = super.getView(position, convertView, parent);
                                         TextView textView = (TextView) view.findViewById(android.R.id.text1);
                                         Log.d("Login", "Cargando Mesa..");
-                                        if (clsGlobal.currentMesa != null) {
 
-                                            if (mesa[position].Id.equals(clsGlobal.currentMesa.Id)) {
-
-                                                mesa[position] = clsGlobal.currentMesa;
-                                            }
-
-                                        } else {
-
-                                        }
                                         if (mesa[position].Estado.equals("0")) {
                                             textView.setTextColor(Color.DKGRAY);
 
@@ -229,9 +221,10 @@ public class ComandaActivity extends ActionBarActivity {
                                             menuForm.putExtra("Mesa", adap.getItem(position).toString());
                                             menuForm.putExtra("IdMesa", mesa[position].Id);
                                             menuForm.putExtra("EstadoMesa", mesa[position].Estado);
+                                            menuForm.putExtra("posSalon", glo.posSalon);
                                             startActivity(menuForm);
-                                            mesa[position].spSetEstado("4");//Bloquea la mesa
                                             glo.mesaAbierta=true;
+                                            CargarEstadoMesa(mesa[position].Id);
                                         } else {
                                             Toast.makeText(ComandaActivity.this, "La mesa esta siendo usada por otro usuario", Toast.LENGTH_LONG).show();
 
@@ -251,6 +244,52 @@ public class ComandaActivity extends ActionBarActivity {
 
             hilo.start();
         }
+    }
+
+    public void CargarEstadoMesa(final String idMesa) {
+
+        while (clsGlobal.llamadaEnCurso) {
+
+        }
+            clsGlobal.llamadaEnCurso = true;
+            Thread hilo = new Thread() {
+
+                @Override
+                public void run() {
+
+                    String NAMESPACE = new clsGlobal().NAMESPACE;
+                    String URL = new clsGlobal().URL;
+                    String METHOD_NAME = "fnCargarEstadoMesa";
+                    String SOAP_ACTION = new clsGlobal().SOAP_ACTION + "/fnCargarEstadoMesa";
+
+                    final SoapObject sp = new SoapObject(NAMESPACE, METHOD_NAME);
+                    sp.addProperty("_IdMesa", idMesa);
+                    SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(SoapEnvelope.VER11);
+                    envelope.dotNet = true;
+                    envelope.setOutputSoapObject(sp);
+
+                    HttpTransportSE transporte = new HttpTransportSE(URL, glo.Time_out);
+                    try {
+
+                        transporte.call(SOAP_ACTION, envelope);
+                        SoapPrimitive resulxml = (SoapPrimitive) envelope.getResponse();
+                        glo.EstadoMesa = resulxml.toString();
+
+
+                        clsGlobal.llamadaEnCurso = false;
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        clsGlobal.llamadaEnCurso = false;
+                    } catch (XmlPullParserException e) {
+                        e.printStackTrace();
+                        clsGlobal.llamadaEnCurso = false;
+                    }
+
+                }
+            };
+
+            hilo.start();
+
     }
 
 }

@@ -34,6 +34,7 @@ import org.ksoap2.serialization.SoapPrimitive;
 import org.ksoap2.serialization.SoapSerializationEnvelope;
 import org.ksoap2.transport.HttpTransportSE;
 import org.xmlpull.v1.XmlPullParserException;
+import android.view.KeyEvent;
 
 import java.io.IOException;
 import java.text.NumberFormat;
@@ -57,6 +58,9 @@ public class MenuActivity extends ActionBarActivity {
     String imp;
     String impS;
     String IdMesa;
+    boolean Ocupada = false;
+    boolean priCambio = false;
+    boolean priCambioEdicion = false;
 
     ArrayList<String> ListaIdEnTabla = new ArrayList<>();
     ArrayList<String> ListaCantidadEnTabla = new ArrayList<>();
@@ -86,20 +90,67 @@ public class MenuActivity extends ActionBarActivity {
         IdMesa = datos.getString("IdMesa");
         actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
         CargarCategorias();
+        CargarEstadoMesa(IdMesa);
 
         if (clsGlobal.currentMesa.Estado.equals("1")) {
             CargarComanda(IdMesa);
         }
 
     }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        int lineas = ListaProductoEnTabla.size();
-        spActualizarMesa(clsGlobal.currentMesa.Id, lineas);
-        glo.mesaAbierta=false;
+private void spCerrar(int _lineas){
+    if (Ocupada == false) {
+        spActualizarMesa(clsGlobal.currentMesa.Id, _lineas,false);
     }
+    glo.mesaAbierta=false;
+    finish();
+
+}
+   @Override
+                                    // Esto es lo que hace mi botón al pulsar ir a atrás
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+
+      final  int lineas = ListaProductoEnTabla.size();
+        if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
+
+            if (lineas == 0 && clsGlobal.EdicionCamanda == false ) {
+
+                spCerrar(lineas);
+
+            }else{
+                if (priCambio == true){
+                    AlertDialog.Builder builder = new AlertDialog.Builder(MenuActivity.this);
+
+                    builder.setMessage("¿Desea guardar los cambios efectuados?")
+                            .setTitle("Restaurante")
+                            .setCancelable(false)
+                            .setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    dialog.cancel();
+                                    priCambioEdicion = true;
+                                    spCerrar(lineas);
+                                }
+                            })
+                            .setPositiveButton("Aceptar", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    dialog.cancel();
+                                    spGuardar();
+                                }
+                            });
+
+                    builder.create();
+                    builder.show();
+
+                }else{
+                    spCerrar(lineas);
+                }
+
+            }
+
+        }
+
+        return super.onKeyDown(keyCode, event);
+    }
+
 
     public void CargarCategorias() {
         TabHost tabs = (TabHost) findViewById(R.id.tabHost);
@@ -130,8 +181,11 @@ public class MenuActivity extends ActionBarActivity {
         }
 
     }
-    public void spActualizarMesa(final String _id, final int _lineas) {
+    public void spActualizarMesa(final String _id, final int _lineas, final boolean _BanderaEntrada) {
 
+        while (clsGlobal.llamadaEnCurso) {
+
+        }
         Thread hilo = new Thread() {
 
             String res = "0";
@@ -139,11 +193,34 @@ public class MenuActivity extends ActionBarActivity {
             @Override
             public void run() {
                 int lineas = _lineas;
-                if (lineas == 0) {
-                    clsGlobal.currentMesa.Estado = "0";
-                } else {
-                    clsGlobal.currentMesa.Estado = "1";
+
+                if (_BanderaEntrada == true) {
+                    clsGlobal.currentMesa.Estado = "4";
+                }else{
+                    if (clsGlobal.EdicionCamanda == true ) {
+                        if (clsGlobal.EstadoEdicionCamanda ==true) {
+                            if (lineas == 0) {
+                                if (priCambioEdicion == true){
+                                    clsGlobal.currentMesa.Estado = "1";
+                                }else{
+                                    clsGlobal.currentMesa.Estado = "0";
+                                }
+
+                            } else {
+                                clsGlobal.currentMesa.Estado = "1";
+                            }
+                        }else{
+                            clsGlobal.currentMesa.Estado = "1";
+                        }
+
+                    }else
+                    {
+                        clsGlobal.currentMesa.Estado = "0";
+                    }
+                    clsGlobal.EdicionCamanda = false;
+                    clsGlobal.EstadoEdicionCamanda = false;
                 }
+
                 String NAMESPACE = new clsGlobal().NAMESPACE;
                 String URL = new clsGlobal().URL;
                 String METHOD_NAME = "fnActualizaMesa";
@@ -191,6 +268,7 @@ public class MenuActivity extends ActionBarActivity {
             }
         }
 
+        Arrays.sort(glo.lMenu);
 
         final String lNombreMenu[] = new String[c];
         if (glo.lMenu != null) {
@@ -211,8 +289,6 @@ public class MenuActivity extends ActionBarActivity {
                         pos++;
                     }
                 }
-
-                 Arrays.sort(lNombreMenu);
 
                 ArrayAdapter<String> adapter = new ArrayAdapter<String>(listMenu.getContext(), android.R.layout.simple_list_item_1, lNombreMenu) {
                     @Override
@@ -540,7 +616,7 @@ public class MenuActivity extends ActionBarActivity {
         spRemoverComanda(posicion);
         tb.removeViewAt(posicionVisual);
         CalcularTotales();
-
+        priCambio = true;
     }
 
     public void CalcularTotales() {
@@ -663,6 +739,7 @@ public class MenuActivity extends ActionBarActivity {
                                             columnas.getProperty(9).toString(),
                                             columnas.getProperty(10).toString(), "Principal"
                                     ));
+                            clsGlobal.EdicionCamanda = true;
                             ListaIdEnTabla.add(columnas.getProperty(1).toString() + x);
                             if (columnas.getProperty(2).toString().equals("0")) {
                                 ListaCantidadEnTabla.add("M");//Es un modificador
@@ -727,6 +804,8 @@ public class MenuActivity extends ActionBarActivity {
         Thread proceso = new Thread() {
             public void run() {
                 Log.d("Guardar", "Inicia Guardado");
+                clsGlobal.EdicionCamanda = true;
+                clsGlobal.EstadoEdicionCamanda = true;
                 clsGlobal.ListaComanda.spGuardar(ListaCantidadEnTabla.size());
                 dialogo.dismiss();
                 finish();
@@ -745,6 +824,8 @@ public class MenuActivity extends ActionBarActivity {
                     clsGlobal.ListaComanda.getLinea(pos).estado = "Inactivo";
                 } else {
                     spRemoverComanda(pos + 1);
+                    clsGlobal.EstadoEdicionCamanda = true;
+                    priCambio = true;
                 }
 
             }
@@ -758,6 +839,7 @@ public class MenuActivity extends ActionBarActivity {
             cmd.codigoComanda = glo.currentComanda;
         }
         clsGlobal.ListaComanda.spAddComanda(cmd);
+        priCambio = true;
     }
 
     @Override
@@ -790,5 +872,52 @@ public class MenuActivity extends ActionBarActivity {
         }
     }
 
+    public void CargarEstadoMesa(final String idMesa) {
 
-}
+           clsGlobal.llamadaEnCurso = true;
+            Thread hilo = new Thread() {
+
+                @Override
+                public void run() {
+
+                    String NAMESPACE = new clsGlobal().NAMESPACE;
+                    String URL = new clsGlobal().URL;
+                    String METHOD_NAME = "fnCargarEstadoMesa";
+                    String SOAP_ACTION = new clsGlobal().SOAP_ACTION + "/fnCargarEstadoMesa";
+
+                    final SoapObject sp = new SoapObject(NAMESPACE, METHOD_NAME);
+                    sp.addProperty("_IdMesa", idMesa);
+                    SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(SoapEnvelope.VER11);
+                    envelope.dotNet = true;
+                    envelope.setOutputSoapObject(sp);
+
+                    HttpTransportSE transporte = new HttpTransportSE(URL, glo.Time_out);
+                    try {
+
+                        transporte.call(SOAP_ACTION, envelope);
+                        SoapPrimitive resulxml = (SoapPrimitive) envelope.getResponse();
+                        glo.EstadoMesa = resulxml.toString();
+                        clsGlobal.llamadaEnCurso = false;
+                        if (glo.EstadoMesa.equals("true")) {
+                            Ocupada = true;
+                            finish();
+                        }else{
+                            spActualizarMesa(IdMesa, 0,true);
+                        }
+
+                     //   clsGlobal.llamadaEnCurso = false;
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        clsGlobal.llamadaEnCurso = false;
+                    } catch (XmlPullParserException e) {
+                        e.printStackTrace();
+                        clsGlobal.llamadaEnCurso = false;
+                    }
+
+                }
+            };
+
+            hilo.start();
+
+    }
+  }

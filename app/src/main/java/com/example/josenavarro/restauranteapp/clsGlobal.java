@@ -43,6 +43,10 @@ public class clsGlobal {
     public static String SalonesNombre[];
     public static String SalonesID[];
     public static boolean cargandoSalones = true;
+    public static boolean EdicionCamanda = false;
+    public static boolean EstadoEdicionCamanda = false;
+    public static String EstadoMesa = "false";
+
     clsGlobal(){
         URL = "http://" + DireccionIP + "/WSRest.asmx";
     }
