@@ -522,10 +522,10 @@ private void spCerrar(int _lineas){
                                                                            notaDialog.show();
                                                                            return true;
 
-                                                                       case R.id.mQuitar:
+                                                                   //  case R.id.mQuitar:
 
-                                                                           spQuitarElementos(posicion, tb);
-                                                                           return true;
+                                                                     //    spQuitarElementos(posicion, tb);
+                                                                       // return true;
 
 
 // TODO: AQUI TODO LO RELACIONADO A CAMBIAR LA CANTIDAD  DESCOMENTAR EN MENU_OPCIONES.xml
